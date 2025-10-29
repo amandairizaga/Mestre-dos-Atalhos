@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⌨️</text></svg>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mestre dos Atalhos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #0f172a; /* bg-slate-900 */
+        color: white;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      .hidden { display: none !important; }
+      ::selection {
+        background-color: #22d3ee; /* cyan-400 */
+        color: #0f172a; /* slate-900 */
+      }
+      .animate-fade-in { animation: fadeIn 0.5s ease-in-out; }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      .animate-fade-in-down { animation: fadeInDown 0.5s ease-out; }
+      @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-glow {
+        animation: glow 0.7s ease-in-out;
+        border-radius: 8px;
+      }
+      @keyframes glow {
+        0%, 100% { box-shadow: 0 0 0px transparent; }
+        50% { box-shadow: 0 0 30px #22d3ee; } /* cyan-400 */
+      }
+    </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+
+<div id="app-container" class="w-full max-w-4xl mx-auto">
+    <!-- TELA INICIAL -->
+    <div id="start-screen" class="text-center flex flex-col items-center justify-center h-full animate-fade-in">
+        <h1 class="text-5xl md:text-7xl font-black text-slate-100 mb-4">
+            Desafio de Atalhos
+        </h1>
+        <p class="text-xl md:text-2xl text-slate-300 mb-12 max-w-2xl">
+            Acerte todos os atalhos o mais rápido que puder. Seu tempo será cronometrado!
+        </p>
+        <button id="start-button" class="px-12 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg hover:bg-blue-500 transition-transform transform hover:scale-105">
+            Começar o Desafio
+        </button>
+    </div>
+
+    <!-- TELA DO JOGO -->
+    <div id="game-screen" class="hidden flex flex-col items-center justify-between h-full p-4 md:p-8 animate-fade-in relative">
+        <div id="toast-message" class="hidden absolute top-5 left-1/2 -translate-x-1/2 bg-slate-700 text-white px-6 py-3 rounded-lg shadow-lg"></div>
+        <div class="flex justify-between w-full items-center mb-12">
+            <div>
+                <p class="text-slate-400 text-lg">Pontuação</p>
+                <p id="score-display" class="text-4xl md:text-5xl font-bold text-emerald-400">0</p>
+            </div>
+            <div class="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p id="time-display" class="text-4xl md:text-5xl font-mono font-bold text-slate-100">00:00</p>
+            </div>
+        </div>
+        <div class="text-center w-full min-h-[300px] flex flex-col justify-center items-center">
+            <div class="p-8 rounded-lg">
+                 <p id="challenge-word" class="text-slate-100 transition-all duration-300"></p>
+            </div>
+            <p id="challenge-question" class="text-3xl md:text-4xl mt-8 font-semibold transition-colors duration-200"></p>
+        </div>
+        <div class="flex-grow"></div>
+        <div class="absolute bottom-8 right-8">
+            <button id="skip-button" class="px-8 py-3 bg-slate-700 text-white font-bold text-lg rounded-lg hover:bg-slate-600 transition-all disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed">
+                Pular
+            </button>
+        </div>
+    </div>
+
+    <!-- TELA DE RESULTADOS -->
+    <div id="result-screen" class="hidden text-center flex flex-col items-center justify-center h-full animate-fade-in">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-24 h-24 text-yellow-400 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V16M5 21V16M19 16A5 5 0 0014 11H10A5 5 0 005 16M12 4V2M8 4H16"></path></svg>
+        <h1 class="text-5xl md:text-7xl font-black text-slate-100 mb-4">
+            Desafio Completo!
+        </h1>
+        <p class="text-2xl md:text-3xl text-slate-300 mb-2">Você acertou <span id="final-score" class="text-white font-bold">0</span> atalhos em:</p>
+        <p id="final-time" class="text-5xl md:text-7xl font-mono font-bold text-cyan-400 mb-10">00:00</p>
+        <button id="play-again-button" class="px-12 py-4 bg-emerald-600 text-white font-bold text-xl rounded-lg hover:bg-emerald-500 transition-transform transform hover:scale-105">
+            Jogar Novamente
+        </button>
+    </div>
+</div>
+
+<script>
+    // --- CONSTANTES ---
+    const WORDS = ['Maçã', 'Blusa', 'Carro', 'Casa', 'Escola', 'Futebol', 'Amigo', 'Viagem', 'Música', 'Filme', 'Livro', 'Praia', 'Sol', 'Chuva', 'Noite', 'Dia', 'Família', 'Trabalho', 'Computador', 'Celular', 'Internet', 'Rede', 'Social', 'Notícia', 'História', 'Ciência', 'Arte', 'Cultura', 'Esporte'];
+    const SHORTCUTS = [
+      { name: 'Negrito', challenge: 'Qual atalho é utilizado para tornar a palavra em negrito?', matcher: (e) => e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'b' },
+      { name: 'Itálico', challenge: 'Qual atalho é utilizado para tornar a palavra em itálico?', matcher: (e) => e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'i' },
+      { name: 'Sublinhado', challenge: 'Qual atalho é utilizado para tornar a palavra em sublinhado?', matcher: (e) => e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'u' },
+      { name: 'Copiar', challenge: 'Qual atalho é utilizado para copiar?', matcher: (e) => e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'c' },
+      { name: 'Colar', challenge: 'Qual atalho é utilizado para colar?', matcher: (e) => e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'v' },
+      { name: 'Cortar', challenge: 'Qual atalho é utilizado para cortar?', matcher: (e) => e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'x' },
+      { name: 'Desfazer', challenge: 'Qual atalho é utilizado para desfazer a última ação?', matcher: (e) => e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z' },
+      { name: 'Refazer', challenge: 'Qual atalho é utilizado para refazer uma ação desfeita?', matcher: (e) => e.ctrlKey && e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z' },
+      { name: 'Localizar', challenge: 'Qual atalho é utilizado para localizar uma palavra no texto?', matcher: (e) => e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'f' },
+      { name: 'Salvar', challenge: 'Qual atalho é utilizado para salvar o documento?', matcher: (e) => e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 's' },
+      { name: 'Aumentar Fonte', challenge: 'Qual atalho aumenta o tamanho da fonte?', matcher: (e) => e.ctrlKey && e.shiftKey && !e.altKey && e.key === '>' },
+      { name: 'Diminuir Fonte', challenge: 'Qual atalho diminui o tamanho da fonte?', matcher: (e) => e.ctrlKey && e.shiftKey && !e.altKey && e.key === '<' },
+      { name: 'Selecionar', challenge: 'Qual atalho é utilizado para selecionar a palavra inteira?', matcher: (e) => e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'a' },
+      { name: 'Abrir Documento', challenge: 'Qual atalho abre um novo documento?', matcher: (e) => e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'o' },
+    ];
+    const INITIAL_FONT_SIZE = 60;
+
+    // --- ESTADO DO JOGO ---
+    let score = 0;
+    let timeElapsed = 0;
+    let timerId = null;
+    let isPaused = false;
+    let canSkip = true;
+    let isTransitioning = false;
+    let challengeQueue = [];
+    let currentShortcut = null;
+    let currentWord = '';
+    let wordStyle = {};
+
+    // --- ELEMENTOS DO DOM ---
+    const startScreen = document.getElementById('start-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const startButton = document.getElementById('start-button');
+    const playAgainButton = document.getElementById('play-again-button');
+    const skipButton = document.getElementById('skip-button');
+    const scoreDisplay = document.getElementById('score-display');
+    const timeDisplay = document.getElementById('time-display');
+    const toastMessageEl = document.getElementById('toast-message');
+    const challengeWordEl = document.getElementById('challenge-word');
+    const challengeQuestionEl = document.getElementById('challenge-question');
+    const finalScoreEl = document.getElementById('final-score');
+    const finalTimeEl = document.getElementById('final-time');
+
+    // --- FUNÇÕES UTILITÁRIAS ---
+    const formatTime = (totalSeconds) => {
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    };
+
+    const shuffleArray = (array) => {
+        const newArray = [...array];
+        for (let i = newArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        }
+        return newArray;
+    };
+
+    const getRandomItem = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    
+    const showToast = (message) => {
+        toastMessageEl.textContent = message;
+        toastMessageEl.classList.remove('hidden');
+        toastMessageEl.classList.add('animate-fade-in-down');
+        setTimeout(() => {
+            toastMessageEl.classList.add('hidden');
+            toastMessageEl.classList.remove('animate-fade-in-down');
+        }, 1500);
+    };
+
+    const applyWordStyles = () => {
+        challengeWordEl.style.fontSize = `${wordStyle.fontSize}px`;
+        challengeWordEl.style.fontWeight = wordStyle.isBold ? '900' : '500';
+        challengeWordEl.style.fontStyle = wordStyle.isItalic ? 'italic' : 'normal';
+        challengeWordEl.style.textDecoration = wordStyle.isUnderlined ? 'underline' : 'none';
+        challengeWordEl.style.visibility = wordStyle.isWordVisible ? 'visible' : 'hidden';
+        
+        challengeWordEl.textContent = Array(wordStyle.wordCount).fill(currentWord).join(' ');
+
+        if (wordStyle.glow) {
+            challengeWordEl.classList.add('animate-glow');
+            setTimeout(() => challengeWordEl.classList.remove('animate-glow'), 700);
+        }
+    };
+    
+    const setQuestionColor = (status) => {
+        challengeQuestionEl.classList.remove('text-slate-100', 'text-emerald-400', 'text-red-500');
+        if (status === 'correct') challengeQuestionEl.classList.add('text-emerald-400');
+        else if (status === 'incorrect') challengeQuestionEl.classList.add('text-red-500');
+        else challengeQuestionEl.classList.add('text-slate-100');
+    };
+
+    // --- LÓGICA DO JOGO ---
+    const nextChallenge = () => {
+        window.getSelection()?.removeAllRanges();
+
+        if (challengeQueue.length === 0) {
+            endGame();
+            return;
+        }
+
+        const [nextShortcut, ...remainingQueue] = challengeQueue;
+        challengeQueue = remainingQueue;
+        currentShortcut = nextShortcut;
+        currentWord = getRandomItem(WORDS);
+        
+        wordStyle = {
+            fontSize: INITIAL_FONT_SIZE,
+            isBold: false, isItalic: false, isUnderlined: false,
+            isWordVisible: true, wordCount: 1, glow: false
+        };
+        
+        applyWordStyles();
+        challengeQuestionEl.textContent = currentShortcut.challenge;
+        setQuestionColor('default');
+        isTransitioning = false;
+    };
+
+    const handleCorrectAnswer = () => {
+        if (isTransitioning) return;
+        isTransitioning = true;
+        isPaused = true;
+        
+        score++;
+        scoreDisplay.textContent = score;
+        setQuestionColor('correct');
+
+        switch (currentShortcut.name) {
+            case 'Negrito': wordStyle.isBold = true; break;
+            case 'Itálico': wordStyle.isItalic = true; break;
+            case 'Sublinhado': wordStyle.isUnderlined = true; break;
+            case 'Aumentar Fonte': wordStyle.fontSize += 24; wordStyle.glow = true; break;
+            case 'Diminuir Fonte': wordStyle.fontSize = Math.max(12, wordStyle.fontSize - 24); wordStyle.glow = true; break;
+            case 'Selecionar':
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(challengeWordEl);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                break;
+            case 'Cortar': wordStyle.isWordVisible = false; break;
+            case 'Copiar': wordStyle.wordCount = 2; break;
+            case 'Colar': showToast('Conteúdo colado!'); break;
+            case 'Desfazer': showToast('Ação desfeita!'); break;
+            case 'Refazer': showToast('Ação refeita!'); break;
+            case 'Localizar': showToast('Localizador aberto!'); break;
+            case 'Salvar': showToast('Documento salvo!'); break;
+            case 'Abrir Documento': showToast('Novo documento aberto!'); break;
+        }
+        
+        applyWordStyles();
+        
+        setTimeout(() => {
+            isPaused = false;
+            nextChallenge();
+        }, 1000);
+    };
+
+    const handleIncorrectAnswer = () => {
+        setQuestionColor('incorrect');
+        setTimeout(() => {
+            if (!isTransitioning) {
+                setQuestionColor('default');
+            }
+        }, 500);
+    };
+    
+    const handleKeyDown = (e) => {
+        if (!currentShortcut || isTransitioning) return;
+        e.preventDefault();
+        
+        if (currentShortcut.matcher(e)) {
+            handleCorrectAnswer();
+        } else {
+            handleIncorrectAnswer();
+        }
+    };
+
+    const handleSkip = () => {
+        if (!canSkip || isTransitioning || !currentShortcut) return;
+        
+        canSkip = false;
+        skipButton.disabled = true;
+        isTransitioning = true;
+        isPaused = true;
+        showToast('Desafio pulado para o final!');
+        
+        challengeQueue.push(currentShortcut);
+        
+        setTimeout(() => {
+            isPaused = false;
+            nextChallenge();
+        }, 1000);
+    };
+    
+    const startGame = () => {
+        startScreen.classList.add('hidden');
+        resultScreen.classList.add('hidden');
+        gameScreen.classList.remove('hidden');
+
+        score = 0;
+        timeElapsed = 0;
+        isPaused = false;
+        canSkip = true;
+        isTransitioning = false;
+        scoreDisplay.textContent = '0';
+        timeDisplay.textContent = '00:00';
+        skipButton.disabled = false;
+        
+        challengeQueue = shuffleArray(SHORTCUTS);
+        nextChallenge();
+
+        timerId = setInterval(() => {
+            if (!isPaused) {
+                timeElapsed++;
+                timeDisplay.textContent = formatTime(timeElapsed);
+            }
+        }, 1000);
+
+        window.addEventListener('keydown', handleKeyDown);
+    };
+
+    const endGame = () => {
+        clearInterval(timerId);
+        window.removeEventListener('keydown', handleKeyDown);
+        
+        finalScoreEl.textContent = score;
+        finalTimeEl.textContent = formatTime(timeElapsed);
+        
+        gameScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+    };
+    
+    const playAgain = () => {
+      resultScreen.classList.add('hidden');
+      startScreen.classList.remove('hidden');
+    };
+
+    // --- INICIALIZAÇÃO ---
+    startButton.addEventListener('click', startGame);
+    playAgainButton.addEventListener('click', playAgain);
+    skipButton.addEventListener('click', handleSkip);
+
+</script>
+
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
